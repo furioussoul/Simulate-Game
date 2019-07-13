@@ -9,22 +9,25 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import sun.net.www.http.HttpClient;
 
 import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class CpuMonitor {
+public enum CpuMonitor {
+    INSTANCE;
+
     private final OperatingSystemMXBean osMBean;
     private long lastCPUTimeNs;
     private long lastSampleTimeNs;
     private final int cpuCoreNum;
 
-    public CpuMonitor() {
+
+    CpuMonitor() {
         this.cpuCoreNum = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
         this.osMBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        init();
     }
 
     public void init() {
