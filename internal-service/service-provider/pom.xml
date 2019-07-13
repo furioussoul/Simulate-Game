@@ -15,6 +15,14 @@
     <dependencies>
         <dependency>
             <groupId>com.aliware.tianchi</groupId>
+            <artifactId>workspace-provider</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aliware.tianchi</groupId>
+            <artifactId>workspace-gateway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aliware.tianchi</groupId>
             <artifactId>service-api</artifactId>
         </dependency>
         <dependency>

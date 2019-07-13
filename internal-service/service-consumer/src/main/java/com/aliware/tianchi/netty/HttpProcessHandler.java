@@ -97,7 +97,7 @@ public class HttpProcessHandler extends SimpleChannelInboundHandler<FullHttpRequ
         reference.setInterface(HashInterface.class);
         List<URL> urls = reference.toUrls();
         Map<String, String> attributes = new HashMap<>();
-        attributes.put("loadbaMyProviderlance", "user");
+        attributes.put("loadbalance", "user");
         attributes.put("async", "true");
         attributes.put(Constants.HEARTBEAT_KEY, "0");
         attributes.put(Constants.RECONNECT_KEY, "false");

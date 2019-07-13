@@ -48,6 +48,21 @@
                 <artifactId>dubbo</artifactId>
                 <version>${dubbo.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.aliware.tianchi</groupId>
+                <artifactId>adaptive-loadbalance</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliware.tianchi</groupId>
+                <artifactId>workspace-provider</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliware.tianchi</groupId>
+                <artifactId>workspace-gateway</artifactId>
+                <version>1.0.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
