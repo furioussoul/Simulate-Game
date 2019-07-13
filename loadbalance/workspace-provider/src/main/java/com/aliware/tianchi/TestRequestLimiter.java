@@ -22,20 +22,7 @@ public class TestRequestLimiter implements RequestLimiter {
      */
     @Override
     public boolean tryAcquire(Request request, int activeTaskCount) {
-        double cpuMetric = CpuMonitor.INSTANCE.getCPUMetric();
-        ProviderQuota.INSTANCE.quotaName = System.getProperty("quota");
-        ProviderQuota.INSTANCE.maxTaskCount = Thread.getAllStackTraces().size();
-        ProviderQuota.INSTANCE.activeTaskCount = activeTaskCount;
-        ProviderQuota.INSTANCE.cpuMetric = cpuMetric;
-
-        if(cpuMetric>1){
-            return true;
-        }
-
-        boolean p = cpuMetric< 0.98;
-//        if(!p){
-//            System.out.println("tryAcquire failed : " + cpuMetric);
-//        }
-        return p;
+        //这里可以拿activeTaskCount对比线程数
+        return true;
     }
 }

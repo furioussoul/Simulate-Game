@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CallbackServiceImpl implements CallbackService {
 
-    static Gson gson = new Gson();
 
     public CallbackServiceImpl() {
         timer.schedule(new TimerTask() {
@@ -28,7 +27,8 @@ public class CallbackServiceImpl implements CallbackService {
                 if (!listeners.isEmpty()) {
                     for (Map.Entry<String, CallbackListener> entry : listeners.entrySet()) {
                         try {
-                            entry.getValue().receiveServerMsg(gson.toJson(ProviderQuota.INSTANCE.cloneQuota()));
+                            ProviderQuota.INSTANCE.quotaName = System.getProperty("quota");
+                            entry.getValue().receiveServerMsg(ProviderQuota.INSTANCE.toString());
                         } catch (Throwable t1) {
                             t1.printStackTrace();
 //                            listeners.remove(entry.getKey());
@@ -36,7 +36,7 @@ public class CallbackServiceImpl implements CallbackService {
                     }
                 }
             }
-        }, 10000, 5000);
+        }, 0, 10000);
     }
 
     private Timer timer = new Timer();
