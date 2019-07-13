@@ -10,22 +10,21 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author daofeng.xjf
- *
+ * <p>
  * 客户端监听器
  * 可选接口
  * 用户可以基于获取获取服务端的推送信息，与 CallbackService 搭配使用
- *
  */
 public class CallbackListenerImpl implements CallbackListener {
 
     Gson gson = new Gson();
-    public static Map<String,ProviderQuota.Quota> map = new ConcurrentHashMap<>(3);
+    public static Map<String, ProviderQuota.Quota> map = new ConcurrentHashMap<>(3);
     public static ProviderQuota.Quota candidate;
 
     static {
         Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
 
-            if(map.isEmpty()){
+            if (map.isEmpty()) {
                 return;
             }
 
@@ -40,31 +39,37 @@ public class CallbackListenerImpl implements CallbackListener {
                 double remainCpu1 = 1 - p1v.cpuMetric;
                 double remainCpu2 = 1 - p2v.cpuMetric;
 
-                double diff = remainCpu1 - remainCpu2;
-
-                if(diff > 0.1){
+                if (remainCpu1 >= 0.8 && remainCpu2 < 0.8) {
                     return -1;
-                }else if(diff < -0.1){
+                } else if (remainCpu2 >= 0.8 && remainCpu1 < 0.8) {
                     return 1;
                 }
 
-                int remainTaskCount1 = p1v.maxTaskCount - 10 - p1v.activeTaskCount;
-                int remainTaskCount2 = p2v.maxTaskCount - 10 - p2v.activeTaskCount;
 
-                return (int) (remainCpu2 * 100 + remainTaskCount2 - remainCpu1 * 100 - remainTaskCount1);
+                double usedTaskRatio1 = (double) p1v.activeTaskCount / (double) p1v.maxTaskCount;
+                double usedTaskRatio2 = (double) p1v.activeTaskCount / (double) p2v.maxTaskCount;
+
+                if (usedTaskRatio1 <= 0.3 && usedTaskRatio2 >= 0.3) {
+                    return -1;
+                } else if (usedTaskRatio2 <= 0.3 && usedTaskRatio1 >= 0.3) {
+                    return 1;
+                }
+
+
+                return (int) (remainCpu2 - usedTaskRatio2 - remainCpu1 + usedTaskRatio1);
             });
 
 
             candidate = entryList.get(0).getValue();
-        },0,200, TimeUnit.MILLISECONDS);
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
 
     @Override
     public void receiveServerMsg(String msg) {
         ProviderQuota.Quota providerQuota = gson.fromJson(msg, ProviderQuota.Quota.class);
-        if(providerQuota != null){
-            CallbackListenerImpl.map.put(providerQuota.quotaName,providerQuota);
+        if (providerQuota != null) {
+            CallbackListenerImpl.map.put(providerQuota.quotaName, providerQuota);
         }
         System.out.println("receive quota from server :" + msg);
     }
