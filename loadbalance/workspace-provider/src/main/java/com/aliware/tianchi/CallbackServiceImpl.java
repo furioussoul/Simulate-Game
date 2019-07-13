@@ -1,10 +1,8 @@
 package com.aliware.tianchi;
 
-import com.google.gson.Gson;
 import org.apache.dubbo.rpc.listener.CallbackListener;
 import org.apache.dubbo.rpc.service.CallbackService;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,7 +34,7 @@ public class CallbackServiceImpl implements CallbackService {
                     }
                 }
             }
-        }, 0, 30000);
+        }, 0, 1000);
     }
 
     private Timer timer = new Timer();

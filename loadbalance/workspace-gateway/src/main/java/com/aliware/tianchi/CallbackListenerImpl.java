@@ -1,14 +1,12 @@
 package com.aliware.tianchi;
 
-import com.google.gson.Gson;
+import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.listener.CallbackListener;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author daofeng.xjf
@@ -27,18 +25,35 @@ public class CallbackListenerImpl implements CallbackListener {
         String[] split = msg.split(",");
         if (split.length > 0) {
             String quotaName = split[0];
+            Invoker invoker = UserLoadBalance.quotaNameToInvoker.get(quotaName);
+            UserLoadBalance.errorMap.put(invoker.getUrl().getPort(), new AtomicInteger(0));
+            if (UserLoadBalance.exclude.contains(quotaName) && CallbackListenerImpl.map.size() == 3) {
+                synchronized (CallbackListenerImpl.class) {
+                    if (UserLoadBalance.exclude.contains(quotaName) && CallbackListenerImpl.map.size() == 3) {
+                        System.out.println("re createQueue");
+                        CallbackListenerImpl.createQueue();
+                        UserLoadBalance.exclude.remove(quotaName);
+                    }
+                }
+            }
+
             int maxTaskCount = Integer.parseInt(split[1]);
             ProviderQuota.Quota quota = new ProviderQuota.Quota();
             quota.quotaName = quotaName;
             quota.maxTaskCount = maxTaskCount;
             map.put(quotaName, quota);
         }
-        synchronized (CallbackListenerImpl.class) {
-            if (map.size() == 3 && queue == null
-                    || queue != null && queue.size() < 100) {
-                createQueue();
+
+        if (map.size() == 3 && queue == null
+                || queue != null && queue.size() < 100) {
+            synchronized (CallbackListenerImpl.class) {
+                if (map.size() == 3 && queue == null
+                        || queue != null && queue.size() < 100) {
+                    createQueue();
+                }
             }
         }
+
         System.out.println("receive quota from server :" + msg);
     }
 

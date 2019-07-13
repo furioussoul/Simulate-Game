@@ -106,7 +106,7 @@ public enum CpuMonitor {
     }
 
     public static void main(String[] args) throws Exception {
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 8; i++) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
                 try {
                     connect("127.0.0.1", 8087);
