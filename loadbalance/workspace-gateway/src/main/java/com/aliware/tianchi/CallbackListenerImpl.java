@@ -1,6 +1,5 @@
 package com.aliware.tianchi;
 
-import com.google.gson.Gson;
 import org.apache.dubbo.rpc.listener.CallbackListener;
 
 /**
@@ -13,8 +12,11 @@ import org.apache.dubbo.rpc.listener.CallbackListener;
  */
 public class CallbackListenerImpl implements CallbackListener {
 
+    public static String MSG;
+
     @Override
     public void receiveServerMsg(String msg) {
+        MSG= msg;
         System.out.println("receive quota from server :" + msg);
     }
 }
