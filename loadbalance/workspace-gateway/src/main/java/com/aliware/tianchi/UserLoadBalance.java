@@ -7,8 +7,10 @@ import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author daofeng.xjf
@@ -21,7 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class UserLoadBalance implements LoadBalance {
 
     public final static Map<String, Invoker> quotaNameToInvoker = new HashMap<>(3);
-    public final static Map<Integer,String> portToQuotaName = new HashMap<>(3);
+    public final static Map<Integer, String> portToQuotaName = new HashMap<>(3);
+    public final static Set<String> exclude = new HashSet<>(3);
+    public static Map<Integer, AtomicInteger> errorMap = new ConcurrentHashMap<>(3);
+
     private AtomicBoolean ab = new AtomicBoolean(false);
 
     @Override
@@ -32,21 +37,30 @@ public class UserLoadBalance implements LoadBalance {
                 for (int i = 0; i < invokers.size(); ++i) {
                     String quotaName = invokers.get(i).getUrl().getAddress().split(":")[0].split("-")[1];
                     quotaNameToInvoker.putIfAbsent(quotaName, invokers.get(i));
-                    portToQuotaName.putIfAbsent(invokers.get(i).getUrl().getPort(),quotaName);
+                    portToQuotaName.putIfAbsent(invokers.get(i).getUrl().getPort(), quotaName);
+                    int port = invokers.get(i).getUrl().getPort();
+                    errorMap.putIfAbsent(port, new AtomicInteger(0));
                 }
             }
         }
 
+        System.out.println("queue size " + CallbackListenerImpl.queue.size());
+
         if (CallbackListenerImpl.queue != null) {
-            String quotaName = CallbackListenerImpl.queue.poll();
-            if (null != quotaName) {
-//                System.out.println(quotaName);
-                return quotaNameToInvoker.get(quotaName);
+            String quotaName = null;
+            while (quotaName == null) {
+                quotaName = CallbackListenerImpl.queue.poll();
+                if (!UserLoadBalance.exclude.contains(quotaName)) {
+                    System.out.println("queue " + quotaName);
+                    return quotaNameToInvoker.get(quotaName);
+                }
+                System.out.println("drop " + quotaName);
+                quotaName = null;
             }
         }
 
         Invoker invoker = invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
-//        System.out.println(invoker.getUrl());
+        System.out.println("random " + invoker.getUrl());
         return invoker;
     }
 }

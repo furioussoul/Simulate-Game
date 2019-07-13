@@ -33,15 +33,16 @@ public class CallbackListenerImpl implements CallbackListener {
             quota.maxTaskCount = maxTaskCount;
             map.put(quotaName, quota);
         }
-
-        if (map.size() == 3 && queue == null) {
-            createQueue();
+        synchronized (CallbackListenerImpl.class) {
+            if (map.size() == 3 && queue == null
+                    || queue != null && queue.size() < 100) {
+                createQueue();
+            }
         }
-
         System.out.println("receive quota from server :" + msg);
     }
 
-    private void createQueue() {
+    static public void createQueue() {
 
         List<Map.Entry<String, ProviderQuota.Quota>> entryList = new ArrayList<>(
                 map.entrySet());
@@ -52,15 +53,14 @@ public class CallbackListenerImpl implements CallbackListener {
 
         double[] times = new double[3];
 
-        int total = 0;
+        int total = 200;
 
         for (int i = 0; i < entryList.size(); i++) {
             double time = (double) entryList.get(i).getValue().maxTaskCount / (double) first.getValue().maxTaskCount;
             times[i] = time;
-            total += entryList.get(i).getValue().maxTaskCount;
         }
 
-        queue=new LinkedBlockingQueue<>(total);
+        queue = new LinkedBlockingQueue<>(total);
 
         int count = 0;
 

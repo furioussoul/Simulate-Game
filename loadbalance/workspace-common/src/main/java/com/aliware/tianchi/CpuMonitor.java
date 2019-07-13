@@ -106,14 +106,14 @@ public enum CpuMonitor {
     }
 
     public static void main(String[] args) throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 16; i++) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
                 try {
                     connect("127.0.0.1", 8087);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            },0,5, TimeUnit.SECONDS);
+            },0,1, TimeUnit.SECONDS);
         }
     }
 }

@@ -22,16 +22,15 @@ public class TestServerFilter implements Filter {
         try{
             ProviderQuota.INSTANCE.maxTaskCount = Integer.parseInt(invoker.getUrl().getParameter("threads"));
             Result result = invoker.invoke(invocation);
+
             return result;
         }catch (Exception e){
             throw e;
         }
-
     }
 
     @Override
     public Result onResponse(Result result, Invoker<?> invoker, Invocation invocation) {
         return result;
     }
-
 }
