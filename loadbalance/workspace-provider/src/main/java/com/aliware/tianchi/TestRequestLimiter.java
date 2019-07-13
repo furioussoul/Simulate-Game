@@ -3,6 +3,8 @@ package com.aliware.tianchi;
 import org.apache.dubbo.remoting.exchange.Request;
 import org.apache.dubbo.remoting.transport.RequestLimiter;
 
+import java.util.Map;
+
 /**
  * @author daofeng.xjf
  *
@@ -12,6 +14,12 @@ import org.apache.dubbo.remoting.transport.RequestLimiter;
  */
 public class TestRequestLimiter implements RequestLimiter {
 
+    static CpuMonitor cpuMonitor;
+    static {
+        cpuMonitor = new CpuMonitor();
+        cpuMonitor.init();
+    }
+
     /**
      * @param request 服务请求
      * @param activeTaskCount 服务端对应线程池的活跃线程数
@@ -20,7 +28,8 @@ public class TestRequestLimiter implements RequestLimiter {
      */
     @Override
     public boolean tryAcquire(Request request, int activeTaskCount) {
+        System.out.println(String.format("quota: %s, maxCount: %s, activeTaskCount: %s, cpu usage: %s",
+                System.getProperty("quota"),Thread.getAllStackTraces().size(), activeTaskCount,cpuMonitor.getCPUMetric()));
         return true;
     }
-
 }
