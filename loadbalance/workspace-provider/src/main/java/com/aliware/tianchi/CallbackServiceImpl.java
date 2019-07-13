@@ -1,5 +1,6 @@
 package com.aliware.tianchi;
 
+import com.google.gson.Gson;
 import org.apache.dubbo.rpc.listener.CallbackListener;
 import org.apache.dubbo.rpc.service.CallbackService;
 
@@ -18,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CallbackServiceImpl implements CallbackService {
 
+    static Gson gson = new Gson();
+
     public CallbackServiceImpl() {
         timer.schedule(new TimerTask() {
             @Override
@@ -25,14 +28,15 @@ public class CallbackServiceImpl implements CallbackService {
                 if (!listeners.isEmpty()) {
                     for (Map.Entry<String, CallbackListener> entry : listeners.entrySet()) {
                         try {
-                            entry.getValue().receiveServerMsg(ProviderQuota.INSTANCE.toString());
+                            entry.getValue().receiveServerMsg(gson.toJson(ProviderQuota.INSTANCE.cloneQuota()));
                         } catch (Throwable t1) {
-                            listeners.remove(entry.getKey());
+                            t1.printStackTrace();
+//                            listeners.remove(entry.getKey());
                         }
                     }
                 }
             }
-        }, 0, 5000);
+        }, 10000, 5000);
     }
 
     private Timer timer = new Timer();
@@ -46,6 +50,6 @@ public class CallbackServiceImpl implements CallbackService {
     @Override
     public void addListener(String key, CallbackListener listener) {
         listeners.put(key, listener);
-        listener.receiveServerMsg(new Date().toString()); // send notification for change
+//        listener.receiveServerMsg(new Date().toString()); // send notification for change
     }
 }

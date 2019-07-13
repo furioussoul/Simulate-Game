@@ -1,12 +1,14 @@
 package com.aliware.tianchi;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
 
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -19,9 +21,19 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class UserLoadBalance implements LoadBalance {
 
+    Gson gson = new Gson();
+
     @Override
     public <T> Invoker<T> select(List<Invoker<T>> invokers, URL url, Invocation invocation) throws RpcException {
-        System.out.println(CallbackListenerImpl.MSG);
+        if(CallbackListenerImpl.candidate != null){
+            for (Invoker<T> invoker : invokers) {
+                if(invoker.getUrl().toString().contains(CallbackListenerImpl.candidate.quotaName)){
+//                    System.out.println("providers: " + gson.toJson(CallbackListenerImpl.map));
+//                    System.out.println("pick: " + invoker.getUrl().toString());
+                    return invoker;
+                }
+            }
+        }
         return invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
     }
 }
