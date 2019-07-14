@@ -24,7 +24,7 @@ public class UserLoadBalance implements LoadBalance {
 
     public final static Map<String, Invoker> quotaNameToInvoker = new HashMap<>(3);
     public final static Map<Integer, String> portToQuotaName = new HashMap<>(3);
-    public final static Set<String> exclude = new HashSet<>(3);
+    public final static Set<String> exclude = Collections.synchronizedSet(new HashSet<>(3));
     public static Map<Integer, AtomicInteger> errorMap = new ConcurrentHashMap<>(3);
 
     private AtomicBoolean ab = new AtomicBoolean(false);

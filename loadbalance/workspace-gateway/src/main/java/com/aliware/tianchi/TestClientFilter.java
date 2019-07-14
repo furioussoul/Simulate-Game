@@ -33,6 +33,7 @@ public class TestClientFilter implements Filter {
     public Result onResponse(Result result, Invoker<?> invoker, Invocation invocation) {
         if(result.hasException()){
             handleException(invoker);
+            return result;
         }
 
         if (CallbackListenerImpl.queue != null) {
@@ -45,8 +46,8 @@ public class TestClientFilter implements Filter {
         int port = invoker.getUrl().getPort();
         AtomicInteger atomicInteger = UserLoadBalance.errorMap.get(port);
         int count = atomicInteger.incrementAndGet();
-        if (count == 10) {
-            System.out.println("error >= 10");
+        if (count == 100) {
+            System.out.println("error >= 100");
             String quotaName = UserLoadBalance.portToQuotaName.get(port);
             UserLoadBalance.exclude.add(quotaName);
         }
