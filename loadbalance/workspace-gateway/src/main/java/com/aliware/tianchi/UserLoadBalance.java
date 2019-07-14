@@ -37,7 +37,8 @@ public class UserLoadBalance implements LoadBalance {
                     String quotaName = invokers.get(i).getUrl().getAddress().split(":")[0].split("-")[1];
                     quotaNameToInvoker.putIfAbsent(quotaName, invokers.get(i));
                     ProviderQuota.Quota quota = CallbackListenerImpl.map.get(quotaName);
-                    WeightRoundRobin.Server server = new WeightRoundRobin.Server(quotaName, quota.maxTaskCount);
+                    WeightRoundRobin.Server server = new WeightRoundRobin.Server(quotaName,
+                            quotaName.equals("large") ? quota.maxTaskCount * 3: quota.maxTaskCount);
                     servers.add(server);
                 }
                 wr = new WeightRoundRobin(servers);
