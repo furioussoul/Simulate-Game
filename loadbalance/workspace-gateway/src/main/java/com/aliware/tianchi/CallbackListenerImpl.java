@@ -60,9 +60,9 @@ public class CallbackListenerImpl implements CallbackListener {
                 return;
             }
 
-            if (UserLoadBalance.exclude.contains(quotaName) && taskCountRate < 0.5 && CallbackListenerImpl.map.size() == 3) {
+            if (UserLoadBalance.exclude.contains(quotaName) && taskCountRate < 0.6 && CallbackListenerImpl.map.size() == 3) {
                 synchronized (CallbackListenerImpl.class) {
-                    if (UserLoadBalance.exclude.contains(quotaName) && taskCountRate < 0.5 && CallbackListenerImpl.map.size() == 3) {
+                    if (UserLoadBalance.exclude.contains(quotaName) && taskCountRate < 0.6 && CallbackListenerImpl.map.size() == 3) {
                         System.out.println("re createQueue");
                         CallbackListenerImpl.createQueue();
                         UserLoadBalance.exclude.remove(quotaName);
@@ -72,10 +72,10 @@ public class CallbackListenerImpl implements CallbackListener {
         }
 
         if (map.size() == 3 && queue == null
-                || queue != null && queue.size() < 100) {
+                || queue != null && queue.size() == 0) {
             synchronized (CallbackListenerImpl.class) {
                 if (map.size() == 3 && queue == null
-                        || queue != null && queue.size() < 100) {
+                        || queue != null && queue.size() == 0) {
                     createQueue();
                 }
             }

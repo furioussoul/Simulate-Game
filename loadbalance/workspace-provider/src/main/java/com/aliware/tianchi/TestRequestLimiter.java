@@ -23,7 +23,7 @@ public class TestRequestLimiter implements RequestLimiter {
     public boolean tryAcquire(Request request, int activeTaskCount) {
         ProviderQuota.INSTANCE.activeTaskCount = activeTaskCount;
         //工作线程大于总线程时，限流
-        if(ProviderQuota.INSTANCE.maxTaskCount > 0 && activeTaskCount >= ProviderQuota.INSTANCE.maxTaskCount){
+        if(ProviderQuota.INSTANCE.maxTaskCount > 0 && activeTaskCount >= ProviderQuota.INSTANCE.maxTaskCount - 1){
             return false;
         }
         return true;
