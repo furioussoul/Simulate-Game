@@ -26,6 +26,7 @@ public class CallbackServiceImpl implements CallbackService {
                     for (Map.Entry<String, CallbackListener> entry : listeners.entrySet()) {
                         try {
                             ProviderQuota.INSTANCE.quotaName = System.getProperty("quota");
+
                             entry.getValue().receiveServerMsg(ProviderQuota.INSTANCE.toString());
                         } catch (Throwable t1) {
                             t1.printStackTrace();

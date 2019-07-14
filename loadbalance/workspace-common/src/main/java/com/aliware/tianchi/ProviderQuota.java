@@ -23,5 +23,6 @@ public enum ProviderQuota {
         public int maxTaskCount;
         public int activeTaskCount;
         public double cpuMetric;
+        public long heartbeat;
     }
 }

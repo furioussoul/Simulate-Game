@@ -8,6 +8,7 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.Result;
 import org.apache.dubbo.rpc.RpcException;
 
+
 /**
  * @author daofeng.xjf
  *
@@ -17,12 +18,14 @@ import org.apache.dubbo.rpc.RpcException;
  */
 @Activate(group = Constants.PROVIDER)
 public class TestServerFilter implements Filter {
+
+
+
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         try{
             ProviderQuota.INSTANCE.maxTaskCount = Integer.parseInt(invoker.getUrl().getParameter("threads"));
             Result result = invoker.invoke(invocation);
-
             return result;
         }catch (Exception e){
             throw e;

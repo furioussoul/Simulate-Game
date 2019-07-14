@@ -46,6 +46,7 @@ public enum CpuMonitor {
         return cpuCost * 1.0d / ((now - lastSampleTimeNs) * cpuCoreNum) * 100;
     }
 
+
     public static void connect(String host, int port) throws Exception {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -106,7 +107,7 @@ public enum CpuMonitor {
     }
 
     public static void main(String[] args) throws Exception {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 16; i++) {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
                 try {
                     connect("127.0.0.1", 8087);

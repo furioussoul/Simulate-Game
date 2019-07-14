@@ -20,6 +20,25 @@ public class CallbackListenerImpl implements CallbackListener {
     public static Map<String, ProviderQuota.Quota> map = new ConcurrentHashMap<>(3);
     public static Queue<String> queue;
 
+    private static Timer timer = new Timer();
+
+    static {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    for (Map.Entry<String, ProviderQuota.Quota> entry : map.entrySet()) {
+                        if(System.currentTimeMillis() - entry.getValue().heartbeat >= 2000){
+                            UserLoadBalance.exclude.add(entry.getKey());
+                        }
+                    }
+                } catch (Throwable t1) {
+                    t1.printStackTrace();
+                }
+            }
+        }, 0, 1000);
+    }
+
     @Override
     public void receiveServerMsg(String msg) {
         String[] split = msg.split(",");
@@ -27,21 +46,29 @@ public class CallbackListenerImpl implements CallbackListener {
             String quotaName = split[0];
             Invoker invoker = UserLoadBalance.quotaNameToInvoker.get(quotaName);
             UserLoadBalance.errorMap.put(invoker.getUrl().getPort(), new AtomicInteger(0));
-            if (UserLoadBalance.exclude.contains(quotaName) && CallbackListenerImpl.map.size() == 3) {
+            int maxTaskCount = Integer.parseInt(split[1]);
+            int activeTaskCount = Integer.parseInt(split[2]);
+            ProviderQuota.Quota quota = new ProviderQuota.Quota();
+            quota.quotaName = quotaName;
+            quota.maxTaskCount = maxTaskCount;
+            quota.heartbeat = System.currentTimeMillis();
+            map.put(quotaName, quota);
+            //工作线程超过总线程90%时暂时禁用
+            double taskCountRate = (double) activeTaskCount / (double) maxTaskCount;
+            if (taskCountRate > 0.9) {
+                UserLoadBalance.exclude.add(quotaName);
+                return;
+            }
+
+            if (UserLoadBalance.exclude.contains(quotaName) && taskCountRate < 0.5 && CallbackListenerImpl.map.size() == 3) {
                 synchronized (CallbackListenerImpl.class) {
-                    if (UserLoadBalance.exclude.contains(quotaName) && CallbackListenerImpl.map.size() == 3) {
+                    if (UserLoadBalance.exclude.contains(quotaName) && taskCountRate < 0.5 && CallbackListenerImpl.map.size() == 3) {
                         System.out.println("re createQueue");
                         CallbackListenerImpl.createQueue();
                         UserLoadBalance.exclude.remove(quotaName);
                     }
                 }
             }
-
-            int maxTaskCount = Integer.parseInt(split[1]);
-            ProviderQuota.Quota quota = new ProviderQuota.Quota();
-            quota.quotaName = quotaName;
-            quota.maxTaskCount = maxTaskCount;
-            map.put(quotaName, quota);
         }
 
         if (map.size() == 3 && queue == null

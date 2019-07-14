@@ -13,7 +13,6 @@ import org.apache.dubbo.remoting.transport.RequestLimiter;
 public class TestRequestLimiter implements RequestLimiter {
 
 
-
     /**
      * @param request 服务请求
      * @param activeTaskCount 服务端对应线程池的活跃线程数
@@ -22,7 +21,11 @@ public class TestRequestLimiter implements RequestLimiter {
      */
     @Override
     public boolean tryAcquire(Request request, int activeTaskCount) {
-        //这里可以拿activeTaskCount对比线程数
+        ProviderQuota.INSTANCE.activeTaskCount = activeTaskCount;
+        //工作线程大于总线程时，限流
+        if(ProviderQuota.INSTANCE.maxTaskCount > 0 && activeTaskCount >= ProviderQuota.INSTANCE.maxTaskCount){
+            return false;
+        }
         return true;
     }
 }

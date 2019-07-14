@@ -23,14 +23,7 @@ public class TestClientFilter implements Filter {
             Result result = invoker.invoke(invocation);
             return result;
         } catch (Exception e) {
-            int port = invoker.getUrl().getPort();
-            AtomicInteger atomicInteger = UserLoadBalance.errorMap.get(port);
-            int count = atomicInteger.incrementAndGet();
-            if (count == 10) {
-                System.out.println("error >= 10");
-                String quotaName = UserLoadBalance.portToQuotaName.get(port);
-                UserLoadBalance.exclude.add(quotaName);
-            }
+            handleException(invoker);
             throw e;
         }
 
@@ -38,9 +31,24 @@ public class TestClientFilter implements Filter {
 
     @Override
     public Result onResponse(Result result, Invoker<?> invoker, Invocation invocation) {
+        if(result.hasException()){
+            handleException(invoker);
+        }
+
         if (CallbackListenerImpl.queue != null) {
             CallbackListenerImpl.queue.offer(UserLoadBalance.portToQuotaName.get(invoker.getUrl().getPort()));
         }
         return result;
+    }
+
+    void handleException(Invoker invoker){
+        int port = invoker.getUrl().getPort();
+        AtomicInteger atomicInteger = UserLoadBalance.errorMap.get(port);
+        int count = atomicInteger.incrementAndGet();
+        if (count == 10) {
+            System.out.println("error >= 10");
+            String quotaName = UserLoadBalance.portToQuotaName.get(port);
+            UserLoadBalance.exclude.add(quotaName);
+        }
     }
 }
