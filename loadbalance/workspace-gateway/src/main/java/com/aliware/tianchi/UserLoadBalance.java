@@ -38,7 +38,7 @@ public class UserLoadBalance implements LoadBalance {
                     quotaNameToInvoker.putIfAbsent(quotaName, invokers.get(i));
                     ProviderQuota.Quota quota = CallbackListenerImpl.map.get(quotaName);
                     WeightRoundRobin.Server server = new WeightRoundRobin.Server(quotaName,
-                            quotaName.equals("large") ? quota.maxTaskCount * 3: quota.maxTaskCount);
+                            quotaName.equals("large") ? quota.maxTaskCount * 100: quota.maxTaskCount);
                     servers.add(server);
                 }
                 wr = new WeightRoundRobin(servers);
