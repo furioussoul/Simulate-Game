@@ -26,7 +26,6 @@ public class CallbackServiceImpl implements CallbackService {
                     for (Map.Entry<String, CallbackListener> entry : listeners.entrySet()) {
                         try {
                             ProviderQuota.INSTANCE.quotaName = System.getProperty("quota");
-
                             entry.getValue().receiveServerMsg(ProviderQuota.INSTANCE.toString());
                         } catch (Throwable t1) {
                             t1.printStackTrace();
@@ -35,7 +34,7 @@ public class CallbackServiceImpl implements CallbackService {
                     }
                 }
             }
-        }, 0, 1000);
+        }, 0, 30000);
     }
 
     private Timer timer = new Timer();

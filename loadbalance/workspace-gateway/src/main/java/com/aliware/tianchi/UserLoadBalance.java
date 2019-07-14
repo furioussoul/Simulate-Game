@@ -6,11 +6,12 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcException;
 import org.apache.dubbo.rpc.cluster.LoadBalance;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author daofeng.xjf
@@ -23,44 +24,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UserLoadBalance implements LoadBalance {
 
     public final static Map<String, Invoker> quotaNameToInvoker = new HashMap<>(3);
-    public final static Map<Integer, String> portToQuotaName = new HashMap<>(3);
-    public final static Set<String> exclude = Collections.synchronizedSet(new HashSet<>(3));
-    public static Map<Integer, AtomicInteger> errorMap = new ConcurrentHashMap<>(3);
-
+    public static volatile WeightRoundRobin wr = null;
     private AtomicBoolean ab = new AtomicBoolean(false);
 
     @Override
     public <T> Invoker<T> select(List<Invoker<T>> invokers, URL url, Invocation invocation) throws RpcException {
 
         if (!ab.get()) {
-            if (ab.compareAndSet(false, true)) {
+            if (CallbackListenerImpl.map.size() == 3 && ab.compareAndSet(false, true)) {
+                List<WeightRoundRobin.Server> servers = new ArrayList<>(3);
                 for (int i = 0; i < invokers.size(); ++i) {
                     String quotaName = invokers.get(i).getUrl().getAddress().split(":")[0].split("-")[1];
                     quotaNameToInvoker.putIfAbsent(quotaName, invokers.get(i));
-                    portToQuotaName.putIfAbsent(invokers.get(i).getUrl().getPort(), quotaName);
-                    int port = invokers.get(i).getUrl().getPort();
-                    errorMap.putIfAbsent(port, new AtomicInteger(0));
+                    ProviderQuota.Quota quota = CallbackListenerImpl.map.get(quotaName);
+                    WeightRoundRobin.Server server = new WeightRoundRobin.Server(quotaName, quota.maxTaskCount);
+                    servers.add(server);
                 }
+                wr = new WeightRoundRobin(servers);
             }
         }
 
-        System.out.println("queue size " + CallbackListenerImpl.queue.size());
-
-        if (CallbackListenerImpl.queue != null) {
-            String quotaName = null;
-            while (quotaName == null) {
-                quotaName = CallbackListenerImpl.queue.poll();
-                if (!UserLoadBalance.exclude.contains(quotaName)) {
-                    System.out.println("queue " + quotaName);
-                    return quotaNameToInvoker.get(quotaName);
-                }
-                System.out.println("drop " + quotaName);
-                quotaName = null;
-            }
+        if(wr == null){
+            return null;
         }
-
-        Invoker invoker = invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
-        System.out.println("random " + invoker.getUrl());
+        String ip = wr.round().getIp();
+        System.out.println("weightRoundRobin: " + ip);
+        Invoker invoker = quotaNameToInvoker.get(ip);
         return invoker;
     }
 }
