@@ -4,9 +4,9 @@ public enum ProviderQuota {
     INSTANCE;
 
     public String quotaName;
-    public int maxTaskCount;
+    public int maxTaskCount = 10;
     public int activeTaskCount;
-    public double cpuMetric;
+    public int cpuMetric;
 
     ProviderQuota() {
 
@@ -22,7 +22,7 @@ public enum ProviderQuota {
         public String quotaName;
         public int maxTaskCount;
         public int activeTaskCount;
-        public double cpuMetric;
+        public int cpuMetric;
         public long heartbeat;
     }
 }

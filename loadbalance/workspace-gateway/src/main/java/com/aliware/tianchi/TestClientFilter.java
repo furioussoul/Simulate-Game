@@ -4,8 +4,6 @@ import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.extension.Activate;
 import org.apache.dubbo.rpc.*;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * @author daofeng.xjf
  * <p>
@@ -16,23 +14,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Activate(group = Constants.CONSUMER)
 public class TestClientFilter implements Filter {
 
-
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
-        try {
-            Result result = invoker.invoke(invocation);
-            return result;
-        } catch (Exception e) {
-            throw e;
-        }
+        return invoker.invoke(invocation);
     }
 
     @Override
     public Result onResponse(Result result, Invoker<?> invoker, Invocation invocation) {
-        if(result.hasException()){
-            return result;
-        }
-
+        KeyValPair.Entry entry = WeightRoundRobin.portToSemaphore
+                .get(invoker.getUrl().getPort());
+        entry .longAdder.increment();
         return result;
     }
 }

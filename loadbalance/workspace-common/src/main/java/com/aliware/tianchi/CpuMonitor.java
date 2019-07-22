@@ -27,10 +27,6 @@ public enum CpuMonitor {
     CpuMonitor() {
         this.cpuCoreNum = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
         this.osMBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        init();
-    }
-
-    public void init() {
         lastCPUTimeNs = this.getCpuTime();
         this.lastSampleTimeNs = System.nanoTime();
     }
@@ -39,11 +35,8 @@ public enum CpuMonitor {
         return osMBean.getProcessCpuTime();
     }
 
-    public double getCPUMetric() {
-        long cpuTime = this.getCpuTime();
-        long cpuCost = cpuTime - lastCPUTimeNs;
-        long now = System.nanoTime();
-        return cpuCost * 1.0d / ((now - lastSampleTimeNs) * cpuCoreNum) * 100;
+    public int getCPUSize() {
+        return Runtime.getRuntime().availableProcessors();
     }
 
 

@@ -11,7 +11,7 @@ import org.apache.dubbo.rpc.RpcException;
 
 /**
  * @author daofeng.xjf
- *
+ * <p>
  * 服务端过滤器
  * 可选接口
  * 用户可以在服务端拦截请求和响应,捕获 rpc 调用时产生、服务端返回的已知异常。
@@ -19,17 +19,9 @@ import org.apache.dubbo.rpc.RpcException;
 @Activate(group = Constants.PROVIDER)
 public class TestServerFilter implements Filter {
 
-
-
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
-        try{
-            ProviderQuota.INSTANCE.maxTaskCount = Integer.parseInt(invoker.getUrl().getParameter("threads"));
-            Result result = invoker.invoke(invocation);
-            return result;
-        }catch (Exception e){
-            throw e;
-        }
+        return invoker.invoke(invocation);
     }
 
     @Override
